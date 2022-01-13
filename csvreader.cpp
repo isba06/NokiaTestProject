@@ -6,24 +6,22 @@
 #include <sstream>
 #include <algorithm>
 using namespace std;
-string delCharEndLine(string& st){
-    if (st.empty())
-        return st;
-    if (st.back()=='\r') {
-        cout<<"yes"<<endl;
-        st.erase(st.size()-1);
-    }
-    return st;
-}
 
 struct Indicies{
     unsigned i;
     unsigned j;
 };
 
+string delCharEndLine(string& ch){
+    if(ch.empty())
+        return ch;
+    if(ch.back()=='\r')
+        ch.erase(ch.size()-1);
+    return ch;
+}
 class CSVdata{
-public:
-    vector <vector<string>> table;
+private:
+    vector <vector<string> > table;
     vector<string> formulsInTable, buffVec;
     vector <Indicies> indicesFormuls;
 public:
@@ -36,7 +34,7 @@ public:
                 getline(file, line);
                 stringstream line2(line);
                 while(getline(line2, cell, ',')) {
-                    buffVec.push_back(cell);
+                    buffVec.push_back(delCharEndLine(cell));
                     if (cell[0] == '=') {
                         formulsInTable.push_back(cell);
                         buffVec.empty() ? indicies.j = 0 : indicies.j = buffVec.size() - 1;
@@ -45,7 +43,7 @@ public:
                         } else {
                             indicies.i = table.size();
                         }
-                        this->indicesFormuls.push_back(indicies);
+                        indicesFormuls.push_back(indicies);
                     }
                 }
                 table.push_back(buffVec);
@@ -53,12 +51,17 @@ public:
             }
             file.close();
         }
-        else exit(1);
+        else {
+            cout << "File not open!" << endl;
+            exit(1);
+        }
     }
-    void getTable(){
+    void print(){
         for (const auto& vec : table){
-            for (const auto& elem: vec){
-                cout << elem << " ";
+            for (int i = 0; i<vec.size(); i++){
+                cout << vec[i];
+                if(i !=vec.size()-1)
+                    cout<<',';
             }
             cout << endl;
         }
@@ -72,14 +75,17 @@ public:
             return '-';
         else if(cellWithFormula.find('/') != string::npos)
             return '/';
-        else exit(1);
+        else {
+            cout << "Not correct operation in cell. Please use *, /, +, -" << endl;
+            exit(1);
+        }
     }
     string searchCellsAndCalculate(string& cellWithFormula){
         vector<int> arguments;
         string answer;
         long counter = 0;
         for(int i = 1; i<table.size();i++){
-            for(int j = 1; j<table[0].size(); j++) {
+            for(int j = 1; j<table[i].size(); j++) {
                 if (cellWithFormula.find(table[0][j] + table[i][0]) != string::npos) {
                     counter++;
                     arguments.push_back(stoi(table[i][j]));
@@ -123,15 +129,30 @@ public:
         for(auto index : indicesFormuls)
             table[index.i][index.j] = searchCellsAndCalculate(formulsInTable[++i]);
     }
+    void checkCorrectIndexRowAndColumn(){
+        map <string, int> mp;
+        for (int i = 1; i < table.size(); i++) {
+            if (++mp[table[i][0]] > 1) {
+                cout << "Incorrect index Column or Row!" << endl;
+                exit(1);
+            }
+        }
+        for (int j = 1; j < table[0].size(); j++) {
+            if (++mp[table[0][j]] > 1) {
+                cout << "Incorrect index Column or Row!" << endl;
+                exit(1);
+            }
+        }
+    }
 };
-
 
 
 int main(int argc, char* argv[]) {
 
     CSVdata test;
     test.writeBufferCSV(argv[1]);
+    test.checkCorrectIndexRowAndColumn();
     test.replaceFormuls();
-    test.getTable();
+    test.print();
     return 0;
 }
