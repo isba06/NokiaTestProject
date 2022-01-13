@@ -27,7 +27,7 @@ public:
     vector<string> formulsInTable, buffVec;
     vector <Indicies> indicesFormuls;
 public:
-    void writeBufferCSV(string namefile){
+    void writeBufferCSV(const string& namefile){
         ifstream file(namefile);
         string line, cell;
         Indicies indicies;
@@ -74,9 +74,9 @@ public:
             return '/';
         else exit(1);
     }
-    long searchCellsAndCalculate(string& cellWithFormula){
+    string searchCellsAndCalculate(string& cellWithFormula){
         vector<int> arguments;
-        long answer = 0;
+        string answer;
         long counter = 0;
         for(int i = 1; i<table.size();i++){
             for(int j = 1; j<table[0].size(); j++) {
@@ -88,101 +88,50 @@ public:
                         counter = 0;
                         switch (searchOperator(cellWithFormula)) {
                             case '+':
-                                answer = arguments[0] + arguments[1];
+                                answer = to_string(arguments[0] + arguments[1]);
                                 break;
                             case '-':
-                                answer = arguments[0] - arguments[1];
+                                answer = to_string(arguments[0] - arguments[1]);
                                 break;
                             case '*':
-                                answer = arguments[0] * arguments[1];
+                                answer = to_string(arguments[0] * arguments[1]);
                                 break;
                             case '/':
                                 if (arguments[1] == 0) {
                                     cout << "Error division by 0! Cell " << table[0][j] + table[i][0] <<endl ;
-                                    exit(1);
+                                    answer = cellWithFormula;
+                                    break;
                                 }
-                                answer = arguments[0] / arguments[1];
+                                answer = to_string(arguments[0] / arguments[1]);
                                 break;
-
+                            default: answer = cellWithFormula;
                         }
-                        arguments.clear();
                     }
                 }
+
             }
+        }
+        if (arguments.size() == 1) {
+            cout << "Incorrect address cell!"<<endl;
+            return cellWithFormula;
+
         }
         return answer;
     }
     void replaceFormuls(){
         size_t i = -1;
         for(auto index : indicesFormuls)
-            table[index.i][index.j] = to_string(searchCellsAndCalculate(formulsInTable[++i]));
+            table[index.i][index.j] = searchCellsAndCalculate(formulsInTable[++i]);
     }
 };
 
 
 
-int main() {
+int main(int argc, char* argv[]) {
 
-    string name, line, line3;
-    vector <pair<int, int>> indices;
-    vector <vector<string>> buffer;
-    vector<string> buff3;
-    name = "testcsv.csv";
-    ifstream fp(name);
-    if(fp.is_open()) {
-        while (!fp.eof()){
-            getline(fp, line);
-            stringstream line2(line);
-            vector <string> buff2;
-            while(getline(line2, line3 , ',')){
-                buff2.push_back(line3);
-                if(line3[0] == '='){
-                    buff3.push_back(line3);
-                    indices.push_back(make_pair(buffer.size(), buff2.size()-1));
-                }
-            }
-            buffer.push_back(buff2);
-
-        }
-    }
-    fp.close();
-    long first, second;
-    //cout<<buffer[2][2][0]<<endl;
-    //можно завернуть в функцию и вместо buff3 подставить параметр
-
-    size_t indexBuff3 = 0;
-    long answer=0;
-    long i_indexWrite = -1, j_indexWrite = -1;
-    unsigned counter = 0; //counter for ARG1 and ARG2
-    while(indexBuff3 < buff3.size()) {
-        for (size_t i = 1; i < buffer.size(); i++) {
-            for (size_t j = 1; j < buffer[i].size(); j++) {
-                if (buff3[indexBuff3].find((buffer[0][j] + buffer[i][0])) != std::string::npos) {
-                    counter++;
-                    answer += stoi(buffer[i][j]);
-                    if(counter==2) {
-                        buffer[indices[++i_indexWrite].first][indices[++j_indexWrite].second] = to_string(answer);
-                        counter = 0;
-                        answer = 0;
-                    }
-
-                    cout << buffer[i][j]<< " " <<i<<" "<<j<<" "<<buffer[0][j] + buffer[i][0] << " "<< buff3[indexBuff3]<<" count: "<<counter << endl;
-                }
-            }
-        }
-
-        indexBuff3++;
-    }
-    for(auto i : buffer) {
-        for (auto j: i)
-            cout << j<<" ";
-        cout << endl;
-    }
     CSVdata test;
-    test.writeBufferCSV("testcsv.csv");
+    test.writeBufferCSV(argv[1]);
     test.replaceFormuls();
     test.getTable();
-   // for (auto i : test.formulsInTable)
-       // cout << i << endl;
     return 0;
 }

@@ -3,4 +3,4 @@ project(NokiaTestProject)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(NokiaTestProject main.cpp)
+add_executable(NokiaTestProject csvreader.cpp)
