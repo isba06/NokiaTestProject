@@ -63,7 +63,60 @@ public:
             cout << endl;
         }
     }
+    char searchOperator(string& cellWithFormula) {
+        if (cellWithFormula.find("+") != string::npos)
+            return '+';
+        else if(cellWithFormula.find('*') != string::npos)
+            return '*';
+        else if(cellWithFormula.find('-') != string::npos)
+            return '-';
+        else if(cellWithFormula.find('/') != string::npos)
+            return '/';
+        else exit(1);
+    }
+    long searchCellsAndCalculate(string& cellWithFormula){
+        vector<int> arguments;
+        long answer = 0;
+        long counter = 0;
+        for(int i = 1; i<table.size();i++){
+            for(int j = 1; j<table[0].size(); j++) {
+                if (cellWithFormula.find(table[0][j] + table[i][0]) != string::npos) {
+                    counter++;
+                    arguments.push_back(stoi(table[i][j]));
+                    if (counter == 2) {
 
+                        counter = 0;
+                        switch (searchOperator(cellWithFormula)) {
+                            case '+':
+                                answer = arguments[0] + arguments[1];
+                                break;
+                            case '-':
+                                answer = arguments[0] - arguments[1];
+                                break;
+                            case '*':
+                                answer = arguments[0] * arguments[1];
+                                break;
+                            case '/':
+                                if (arguments[1] == 0) {
+                                    cout << "Error division by 0! Cell " << table[0][j] + table[i][0] <<endl ;
+                                    exit(1);
+                                }
+                                answer = arguments[0] / arguments[1];
+                                break;
+
+                        }
+                        arguments.clear();
+                    }
+                }
+            }
+        }
+        return answer;
+    }
+    void replaceFormuls(){
+        size_t i = -1;
+        for(auto index : indicesFormuls)
+            table[index.i][index.j] = to_string(searchCellsAndCalculate(formulsInTable[++i]));
+    }
 };
 
 
@@ -127,8 +180,9 @@ int main() {
     }
     CSVdata test;
     test.writeBufferCSV("testcsv.csv");
+    test.replaceFormuls();
     test.getTable();
-    for(auto i : test.formulsInTable)
-        cout << i <<endl;
+   // for (auto i : test.formulsInTable)
+       // cout << i << endl;
     return 0;
 }
