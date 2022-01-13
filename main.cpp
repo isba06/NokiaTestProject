@@ -16,6 +16,57 @@ string delCharEndLine(string& st){
     return st;
 }
 
+struct Indicies{
+    unsigned i;
+    unsigned j;
+};
+
+class CSVdata{
+public:
+    vector <vector<string>> table;
+    vector<string> formulsInTable, buffVec;
+    vector <Indicies> indicesFormuls;
+public:
+    void writeBufferCSV(string namefile){
+        ifstream file(namefile);
+        string line, cell;
+        Indicies indicies;
+        if (file.is_open()){
+            while(!file.eof()){
+                getline(file, line);
+                stringstream line2(line);
+                while(getline(line2, cell, ',')) {
+                    buffVec.push_back(cell);
+                    if (cell[0] == '=') {
+                        formulsInTable.push_back(cell);
+                        buffVec.empty() ? indicies.j = 0 : indicies.j = buffVec.size() - 1;
+                        if (table.empty()) {
+                            indicies.i = 0;
+                        } else {
+                            indicies.i = table.size();
+                        }
+                        this->indicesFormuls.push_back(indicies);
+                    }
+                }
+                table.push_back(buffVec);
+                buffVec.clear();
+            }
+            file.close();
+        }
+        else exit(1);
+    }
+    void getTable(){
+        for (const auto& vec : table){
+            for (const auto& elem: vec){
+                cout << elem << " ";
+            }
+            cout << endl;
+        }
+    }
+
+};
+
+
 
 int main() {
 
